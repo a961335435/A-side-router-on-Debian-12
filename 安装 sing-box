@@ -1,0 +1,136 @@
+# 安装 sing-box 及后续的其它组件，你的网络环境应该有可以访问 github.com 等网站的必要条件。
+# sing-box 安装一般有两种方式：一是通过下载二进制文件安装，二是一键安装。
+# 本人这两种都用过，最后使用了一键安装。主要是后续升级方便。
+ 
+
+# 一键安装sing-box
+
+sudo curl -fsSL https://sing-box.app/gpg.key -o /etc/apt/keyrings/sagernet.asc
+sudo chmod a+r /etc/apt/keyrings/sagernet.asc
+echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/sagernet.asc] https://deb.sagernet.org/ * *" | \
+  sudo tee /etc/apt/sources.list.d/sagernet.list > /dev/null
+sudo apt-get update
+sudo apt-get install sing-box
+
+========================================================================
+
+# 安装成功后
+systemctl daemon-reload
+
+#启用	
+sudo systemctl enable sing-box
+
+#禁用	
+sudo systemctl disable sing-box
+
+#启动	
+sudo systemctl start sing-box
+
+#停止	
+sudo systemctl stop sing-box
+
+#强行停止	
+sudo systemctl kill sing-box
+
+#重新启动	
+sudo systemctl restart sing-box
+
+# 检查 sing-box 服务状态
+sudo systemctl status sing-box
+
+# 有如下输出，OK.
+
+● sing-box.service - sing-box service
+     Loaded: loaded (/lib/systemd/system/sing-box.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2024-10-15 14:21:52 CST; 7h ago
+       Docs: https://sing-box.sagernet.org
+   Main PID: 1926 (sing-box)
+      Tasks: 10 (limit: 2305)
+     Memory: 27.9M
+        CPU: 1min 33.036s
+     CGroup: /system.slice/sing-box.service
+             └─1926 /usr/bin/sing-box -D /var/lib/sing-box -C /etc/sing-box run
+
+Oct 15 14:21:52 mainreoute systemd[1]: Started sing-box.service - sing-box service.
+
+========================================================================
+
+# 我的 sing-box 配置文件，该配置是为了结合 daed 使用。
+# 进站只配置了 socks 7777 端口，做为 daed 的唯一节点。
+# 结合 daed ,dns 不需要配置。
+
+vim /etc/sing-box/config.json
+
+{
+    "log": {
+        "disabled": false,
+        "level": "info",
+        "timestamp": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "0.0.0.0:9090",
+            "external_ui": "metacubexd",
+            "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+            "external_ui_download_detour": "manual",
+            "default_mode": "rule"
+        },
+        "cache_file": {
+            "enabled": true
+        }
+    },
+    "inbounds": [
+        {
+            "type": "socks",
+            "tag": "socks-in",
+            "listen": "0.0.0.0",
+            "listen_port": 7777,
+            "tcp_fast_open": true,
+            "tcp_multi_path": false,
+            "udp_fragment": true,
+            "sniff": false,
+            "sniff_override_destination": false,
+            "sniff_timeout": "300ms",
+            "udp_timeout": 300
+        }
+    ],
+    "outbounds": [
+    {
+			"type": "selector",
+			"tag": "manual",
+			"outbounds": [
+				"VMess_WS",
+				"singbox_hysteria2",
+				"VLESS_Reality_Vision",
+				"VLESS_Reality_gPRC",
+				"tuic",
+				"VMess_HTTPUpgrade"
+			]
+		},
+      .....
+    
+# outbounds 配置方法请自行学习，可供参考的样板网站之一：
+
+   https://github.com/chika0801/sing-box-examples
+   
+# 路由配置的 manual ,是为出站配置了 selector . 
+
+    ],
+    "route": {
+        "final": "manual",
+        "auto_detect_interface": true
+    }
+}
+
+# 保存json，重启 sing-box .
+
+systemctl restart sing-box
+
+# 检查 sing-box 服务状态
+
+journalctl -xfu sing-box 
+
+# 如果有报错，请根据日志的提示修改 config.json ，保存重启 sing-box .直到不报错为止。
+# 很多都是格式错误引进的，编辑和修改时要细心，特别是 “，号” 和 “} 号“ 这两个家伙。
+
+========================================================================
