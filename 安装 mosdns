@@ -1,0 +1,43 @@
+# 下载及安装 mosdns
+
+# 核心下载
+wget https://github.com/IrineSistiana/mosdns/releases/download/v5.3.3/mosdns-linux-amd64.zip
+
+# 挂载运行目录
+mkdir /etc/mosdns
+
+# 解压至指定目录
+unzip mosdns-linux-amd64.zip -d /etc/mosdns
+
+# 进入运行文件夹
+cd /etc/mosdns
+
+# 赋予可执行权限
+chmod +x mosdns
+
+# 复制到存放自定义或第三方安装的可执行程序的文件夹
+mv mosdns /usr/local/bin
+
+# 创建启动服务
+touch /etc/systemd/system/mosdns.service
+
+# 编辑启动文件内容
+vim mosdns.service
+
+================================================================================
+[Unit]
+Description=mosdns daemon
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart=/usr/local/bin/mosdns start -c /etc/mosdns/config.yaml -d /etc/mosdns
+StartLimitInterval=3
+StartLimitBurst=100
+
+[Install]
+WantedBy=multi-user.target
+==============================================================================
+
+
