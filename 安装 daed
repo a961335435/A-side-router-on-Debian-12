@@ -21,6 +21,7 @@ sudo systemctl enable daed
 # 安装完成后浏览器打开 10.10.11.7:2023 ，会出现 daed 配置界面；
 # 点击“编辑”（“笔”）开始配置 dae
 
+--------------------------------------------------------------
 ## 配置： global 
 
 # 透明代理端口保护：不选；
@@ -34,7 +35,7 @@ sudo systemctl enable daed
 # uTLS 模仿：chrome_auto
 
 ## 配置：Dns
-
+--------------------------------------------------------------
 ipversion_prefer: 4
 upstream {
   mosdns: 'tcp+udp://127.0.0.1:5335' # 我本地 mosdns 服务 
@@ -49,7 +50,7 @@ routing {
     fallback: mosdns
     } 
 }
-
+--------------------------------------------------------------
 ## 配置：路由
 
 l4proto(udp) && dport(5335) && dport(53) -> must_direct
@@ -119,14 +120,14 @@ dip(ext:'geoip.dat:cn') -> direct
 
 # 默认出站分组
 fallback: proxy
-
+--------------------------------------------------------------
 ## 配置：节点
 
 # 点击 “云+”，新建节点：
 # 链接：socks5://localhost:7777
 # 标签：toworld
 # 该节点即是 sing-box 的唯一入站节点。
-
+--------------------------------------------------------------
 ## 配置： 群组
 
 # 将节点用鼠标拖入到“群组”，即完成了 dae 配置。
@@ -138,7 +139,56 @@ fallback: proxy
 # 以上配置是我自己用的，有些可能需要调整和优化。欢迎来搞。
 
 # 可以 ssh 连接旁路由检查详细的输出日志。
-
 journalctl -xfu daed
 
+# 规则文件自动更新
+touch /usr/share/daed/dae_rule_update.sh
+touch /etc/mosdns/download_log.txt
+vim /usr/share/daed/dae_rule_update.sh
 
+--------------------------------------------------------------
+
+#!/bin/bash
+
+# 下载网址
+geoip_url="https://github.com/v2rayA/dist-v2ray-rules-dat/raw/master/geoip.dat"
+geosite_url="https://github.com/v2rayA/dist-v2ray-rules-dat/raw/master/geosite.dat"
+
+# 本地文件
+geoip_file="/usr/share/daed/geoip.dat"
+geosite_file="/usr/share/daed/geosite.dat"
+
+# 下载替换函数
+download_and_replace() {
+  local url="$1"
+  local local_file="$2"
+  local tmp_file="$local_file.tmp"
+
+  # 文件下载
+  wget -O "$tmp_file" "$url" > /dev/null 2>&1
+
+  if [[ $? -eq 0 ]]; then
+    # 更新成功
+    mv "$tmp_file" "$local_file"
+    echo "$local_file 更新成功!"
+  else
+    # 下载失败
+   echo " $url to $local_file 下载失败！检查 /etc/mosdns/download_log.txt ！ " >> /etc/mosdns/download_log.txt
+  fi
+}
+
+# 执行下载替换
+download_and_replace "$geoip_url" "$geoip_file"
+download_and_replace "$geosite_url" "$geosite_file"
+
+--------------------------------------------------------------
+
+#  定时更新
+
+crontab -e 
+
+# 定时执行任务
+0 0 * * * sudo /usr/share/daed/dae_rule_update.sh
+
+
+==============================================================================
