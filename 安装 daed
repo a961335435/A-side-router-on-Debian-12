@@ -1,0 +1,144 @@
+# 为方便日后的管理和调整，我用“一键”安装了 daed,主要是方便用图形界面调整、优化 dae 参数。
+# 方法来自“官网”，请自行验证查询。
+
+==============================================================================
+
+# Download
+wget -P /tmp https://github.com/daeuniverse/daed/releases/latest/download/installer-daed-linux-$(arch).deb
+
+# install
+sudo dpkg -i /tmp/installer-daed-linux-$(arch).deb
+rm /tmp/installer-daed-linux-$(arch).deb
+
+# Start daed
+sudo systemctl start daed
+
+# enable daed start automatically
+sudo systemctl enable daed
+
+==============================================================================
+
+# 安装完成后浏览器打开 10.10.11.7:2023 ，会出现 daed 配置界面；
+# 点击“编辑”（“笔”）开始配置 dae
+
+## 配置： global 
+
+# 透明代理端口保护：不选；
+# 日志等级：信息；
+# LAN 接口：ens33;
+# WAN 接口：ens33;
+# 自动配置内核参数：选；（即使你已经配置好了系统的网络环境，这个选项也需要选择，否则不通。）
+# 节点连通性检测：删除 ipv6 节点。
+# 连接选项：domain
+# TLS 实现：utls
+# uTLS 模仿：chrome_auto
+
+## 配置：Dns
+
+ipversion_prefer: 4
+upstream {
+  mosdns: 'tcp+udp://127.0.0.1:5335' # 我本地 mosdns 服务 
+}
+routing {
+  request {
+    # 广告拒绝
+    qname(ext:'geosite.dat:category-ads') -> reject
+    qname(ext:'geosite.dat:category-ads-all') -> reject
+    # ipv6拒绝
+    qtype(aaaa) -> reject
+    fallback: mosdns
+    } 
+}
+
+## 配置：路由
+
+l4proto(udp) && dport(5335) && dport(53) -> must_direct
+pname(mosdns) -> must_rules
+pname(NetworkManager, systemd-resolved,dnsmasq) -> must_direct
+pname(sing-box) -> must_direct
+ dip(224.0.0.0/3) -> direct
+ dip(geoip:private) -> direct
+
+# 所有UDP流量走直连，除了DNS和Quic
+l4proto(udp) && !dport(53, 443) -> direct
+
+# 根据实际需要配置网站等
+domain(ext:'geosite.dat:github') -> proxy
+
+#domain(ext:'geosite.dat:apple') -> direct
+domain(ext:'geosite.dat:apple-cn') -> direct
+domain(ext:'geosite.dat:icloud') -> direct
+domain(ext:'geosite.dat:icloudprivaterelay') -> direct
+domain(ext:'geosite.dat:microsoft') -> direct
+domain(ext:'geosite.dat:logitech') -> direct
+domain(ext:'geosite.dat:mozilla') -> direct
+domain(ext:'geosite.dat:speedtest') -> direct
+domain(ext:'geosite.dat:cn') -> direct
+domain(ext:'geosite.dat:china-list') -> direct
+domain(ext:'geosite.dat:geolocation-cn') -> direct
+domain(ext:'geosite.dat:private') -> direct
+domain(ext:'geosite.dat:cloudflare-cn') -> direct
+domain(ext:'geosite.dat:category-scholar-cn') -> direct
+domain(ext:'geosite.dat:category-media-cn') -> direct
+domain(ext:'geosite.dat:category-social-media-cn') -> direct
+domain(ext:'geosite.dat:category-dev-cn') -> direct
+domain(ext:'geosite.dat:category-bank-cn') -> direct
+domain(ext:'geosite.dat:category-game-accelerator-cn') -> direct
+domain(ext:'geosite.dat:alibaba') -> direct
+domain(ext:'geosite.dat:bilibili') -> direct
+domain(ext:'geosite.dat:bilibili2') -> direct
+domain(ext:'geosite.dat:tencent') -> direct
+domain(ext:'geosite.dat:zhihu') -> direct
+domain(suffix: 'windows.com') -> direct
+domain(suffix: 'bing.com') -> direct
+
+# 国内IP，直接转发
+domain(geosite:cn) -> direct
+dip(geoip:private) -> direct
+dip(geoip:cn) -> direct
+
+
+# IP版本规则:
+ipversion(6) -> block
+
+# 对广告说byebye
+domain(geosite:category-ads) -> block
+domain(geosite:category-ads-all) -> block
+
+#谷歌云网址拒绝
+domain(suffix:bc.googleusercontent.com) -> block
+domain(suffix:googleusercontent) -> block
+
+# 代理域名地址非cn的网站
+domain(geosite:geolocation-!cn) -> toWorld_proxy
+
+# 代理IP非CN的请求
+!dip(geoip:cn) -> proxy
+dip(ext:'geoip.dat:private') -> direct
+dip(ext:'geoip.dat:cn') -> direct
+
+# 默认出站分组
+fallback: proxy
+
+## 配置：节点
+
+# 点击 “云+”，新建节点：
+# 链接：socks5://localhost:7777
+# 标签：toworld
+# 该节点即是 sing-box 的唯一入站节点。
+
+## 配置： 群组
+
+# 将节点用鼠标拖入到“群组”，即完成了 dae 配置。
+# 最后，点击右上角的“云朵”，如果一切正常，变成了蓝色，表示“通了！”。
+# 如果不通，右下角会提示报错信息，根据报错信息检查配置。
+
+==============================================================================
+
+# 以上配置是我自己用的，有些可能需要调整和优化。欢迎来搞。
+
+# 可以 ssh 连接旁路由检查详细的输出日志。
+
+journalctl -xfu daed
+
+
