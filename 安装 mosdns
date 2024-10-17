@@ -24,7 +24,7 @@ touch /etc/systemd/system/mosdns.service
 # 编辑启动文件内容
 vim mosdns.service
 
-================================================================================
+----------------------------------------------------------------
 [Unit]
 Description=mosdns daemon
 After=syslog.target network.target
@@ -38,6 +38,423 @@ StartLimitBurst=100
 
 [Install]
 WantedBy=multi-user.target
+----------------------------------------------------------------
+
+
+# 下载相关规则文件
+
+curl https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/direct-list.txt > /etc/mosdns/geosite_cn.txt
+curl https://raw.githubusercontent.com/Hackl0us/GeoIP2-CN/release/CN-ip-cidr.txt > /etc/mosdns/geoip_cn.txt
+curl https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt > /etc/mosdns/geosite_geolocation_noncn.txt
+curl https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt > /etc/mosdns/gfw.txt
+
+#  在/etc/mosdns/rule 下新建这些文件
+
+# 创建相关规则库，whitelist为国内dns解析
+# greylist.txt为远程dns解析
+# ddns会增加ttl标记，快速完成ddns解析ip地址更换
+
+mkdir /etc/mosdns/rule
+cd /etc/mosdns/rule
+
+touch whitelist.txt
+vim whitelist. txt
+  ##查询优化
+  domain:push-apple.com.akadns.net
+  domain:push.apple.com
+  domain:iphone-ld.apple.com
+  domain:lcdn-locator.apple.com
+  domain:lcdn-registration.apple.com
+  domain:cn-ssl.ls.apple.com
+  domain:time.apple.com
+  domain:store.ui.com.cn
+  domain:amd.com
+  domain:msftncsi.com
+  domain:msftconnecttest.com
+  domain:office.com
+  domain:office365.com
+
+touch blocklist.txt
+vim blocklist.txt
+  keyword:.localdomain
+
+
+touch greylist.txt
+touch ddnslist.txt
+touch hosts.txt
+touch redirect.txt 
+touch adlist.txt
+touch localptr.txt
+vim localptr.txt 
+ # block all PTR requests
+ domain:in-addr.arpa
+ domain:ip6.arpa
+
+
+# 开启并运行mosdns
+systemctl enable mosdns --now 
+
+# 简单查看服务启动状态
+systemctl status mosdns
+
 ==============================================================================
 
+# 配置文件 /etc/mosdns/config.yaml 
+# yaml 格式要求非常严格，可以将编辑好的内容用下面这个网站检查格式。
+# https://products.groupdocs.app/editor/zh/source/config.yaml/b0149169-2bff-4cf8-8672-699f21054d2d
+# 网上配置文件很多，请自行参考编辑自己合适的yaml.
+# 我配置的 forward_local 和 forward_remote ，是网络内的两个 OPNsense 防火墙的 Unbound DNS 服务器。不具备参考意义。
+# mosdns 配置文件信息
+
+----------------------------------------------------------------
+
+log:
+  level: info
+  file: "/etc/mosdns/mosdns.log"
+
+api:
+  http: "0.0.0.0:8338"
+
+include: []
+
+plugins:
+  - tag: geosite_cn
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/geosite_cn.txt"
+
+  - tag: geoip_cn
+    type: ip_set
+    args:
+      files:
+        - "/etc/mosdns/geoip_cn.txt"
+
+  - tag: geosite_no_cn
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/geosite_geolocation_noncn.txt"
+
+  - tag: whitelist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/whitelist.txt"
+
+  - tag: blocklist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/blocklist.txt"
+
+  - tag: greylist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/greylist.txt"
+
+  - tag: ddnslist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/ddnslist.txt"
+
+  - tag: hosts
+    type: hosts
+    args:
+      files:
+        - "/etc/mosdns/rule/hosts.txt"
+
+  - tag: redirect
+    type: redirect
+    args:
+      files:
+        - "/etc/mosdns/rule/redirect.txt"
+
+  - tag: adlist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/adlist.txt"
+
+  - tag: local_ptr
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/localptr.txt"
+
+  - tag: lazy_cache
+    type: cache
+    args:
+      size: 32768
+      lazy_cache_ttl: 86400
+      dump_file: /etc/mosdns/cache.dump
+      dump_interval: 3600
+
+  - tag: reject_3
+    type: sequence
+    args:
+      - exec: reject 3
+
+  - tag: reject_blocklist
+    type: sequence
+    args:
+      - exec: query_summary reject_blocklist
+      - exec: $reject_3
+
+  - tag: reject_adlist
+    type: sequence
+    args:
+      - exec: query_summary reject_adlist
+      - exec: $reject_3
+
+  - tag: reject_ptrlist
+    type: sequence
+    args:
+      - exec: query_summary reject_ptrlist
+      - exec: $reject_3
+
+  - tag: reject_qtype65
+    type: sequence
+    args:
+      - exec: query_summary reject_qtype65
+      - exec: $reject_3
+
+  - tag: forward_local
+    type: forward
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: tcp://10.10.11.55:853
+
+  - tag: forward_remote
+    type: forward
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: tcp://10.10.11.44:853
+        
+
+  - tag: forward_cf
+    type: forward
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: tls://1.1.1.1:853
+          enable_pipeline: true
+          insecure_skip_verify: false
+          idle_timeout: 30
+          enable_http3: false 
+
+  - tag: modify_ttl
+    type: sequence
+    args:
+      - exec: ttl 0-0
+
+  - tag: modify_ddns_ttl
+    type: sequence
+    args:
+      - exec: ttl 5-5
+
+  - tag: local_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_local
+      - exec: $forward_local
+
+  - tag: remote_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_remote
+      - exec: $forward_remote
+
+  - tag: forward_cf_upstream
+    type: sequence
+    args:
+      - exec: query_summary forward_cf
+      - exec: $forward_cf  
+
+  - tag: has_resp_sequence
+    type: sequence
+    args:
+      - matches: qname $ddnslist
+        exec: $modify_ddns_ttl
+      - matches: "!qname $ddnslist"
+        exec: $modify_ttl
+      - matches: has_resp
+        exec: accept
+
+  - tag: query_is_ddns_domain
+    type: sequence
+    args:
+      - matches: qname $ddnslist
+        exec: $local_sequence
+
+  - tag: query_is_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_cn
+        exec: $local_sequence
+
+  - tag: query_is_no_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_no_cn
+        exec: $remote_sequence
+
+  - tag: query_is_whitelist_domain
+    type: sequence
+    args:
+      - matches: qname $whitelist
+        exec: $local_sequence
+
+  - tag: query_is_greylist_domain
+    type: sequence
+    args:
+      - matches: qname $greylist
+        exec: $remote_sequence
+
+  - tag: query_is_reject_domain
+    type: sequence
+    args:
+      - matches: qname $blocklist
+        exec: $reject_blocklist
+      - matches: qname $adlist
+        exec: $reject_adlist
+      - matches:
+        - qtype 12
+        - qname $local_ptr
+        exec: $reject_ptrlist
+      - matches: qtype 65
+        exec: $reject_qtype65
+
+  - tag: fallback_sequence
+    type: sequence
+    args:
+      - exec: $forward_cf_upstream
+      - matches: "rcode 2"
+        exec: goto local_sequence
+      - matches: "resp_ip $geoip_cn"
+        exec: goto local_sequence
+      - matches: "!resp_ip $geoip_cn"
+        exec: goto remote_sequence
+
+  - tag: main_sequence
+    type: sequence
+    args:
+      - exec: metrics_collector metrics
+      - exec: $hosts
+      - exec: jump has_resp_sequence
+      - matches:
+        - "!qname $ddnslist"
+        - "!qname $blocklist"
+        - "!qname $adlist"
+        - "!qname $local_ptr"
+        exec: $lazy_cache
+      - exec: $redirect
+      - exec: jump has_resp_sequence
+      - exec: $query_is_ddns_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_whitelist_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_reject_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_greylist_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_local_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_no_local_domain
+      - exec: jump has_resp_sequence
+      - exec: $fallback_sequence
+
+  - tag: udp_server
+    type: udp_server
+    args:
+      entry: main_sequence
+      listen: 127.0.0.1:5335
+
+  - tag: tcp_server
+    type: tcp_server
+    args:
+      entry: main_sequence
+      listen: 127.0.0.1:5335
+
+==============================================================================
+
+# 为规则文件配置自动更新脚本
+
+ cd /etc/mosdns
+ touch mos_rule_update.sh
+ vim mos_rule_update.sh
+
+----------------------------------------------------------------
+
+#!/bin/bash
+# 下载网址
+geosite_geolocation_noncn_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt'
+gfw_list_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt'
+geosite_cn_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/direct-list.txt'
+geoip_cn_file_url='https://raw.githubusercontent.com/Hackl0us/GeoIP2-CN/release/CN-ip-cidr.txt'
+apple_cn_url='https://github.com/Loyalsoldier/v2ray-rules-dat/blob/release/apple-cn.txt'
+block_list_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/reject-list.txt'
+
+# 本地文件
+
+geosite_cn_file="/etc/mosdns/geosite_cn.txt"
+geoip_cn_file="/etc/mosdns/geoip_cn.txt"
+geosite_geolocation_noncn_file="/etc/mosdns/geosite_geolocation_noncn.txt"
+gfw_file="/etc/mosdns/gfw.txt"
+apple_cn_file="/etc/mosdns/rule/apple-cn.txt"
+block_list_file="/etc/mosdns/rule/adlist.txt"
+
+# 下载替换函数
+download_and_replace() {
+  local url="$1"
+  local local_file="$2"
+  local tmp_file="$local_file.tmp"
+
+  # 文件下载
+  curl -s "$url" -o "$tmp_file" > /dev/null 2>&1
+
+  if [[ $? -eq 0 ]]; then
+    # Download successful, replace the original file
+    mv "$tmp_file" "$local_file"
+    echo "$local_file 更新成功!"
+  else
+    # Download failed, log the error
+    echo " $url to $local_file 下载失败！检查 /etc/mosdns/download_log.txt ！ " >> /etc/mosdns/download_log.txt
+  fi
+}
+
+# 执行下载替换
+download_and_replace "$geosite_geolocation_noncn_url" "$geosite_geolocation_noncn_file"
+download_and_replace "$gfw_list_url" "$gfw_file"
+download_and_replace "$geosite_cn_url" "$geosite_cn_file"
+download_and_replace "$geoip_cn_file_url" "$geoip_cn_file"
+download_and_replace "$apple_cn_url" "$apple_cn_file"
+download_and_replace "$block_list_url" "$block_list_file"
+
+----------------------------------------------------------------
+
+# 为文件赋权
+ chmod +x mos_rule_update.sh
+
+# 测试运行
+./mos_rule_update.sh
+
+# 定时运行自动更新规则文件脚本
+
+systemctl start cron
+systemctl enable cron
+systemctl status cron
+
+crontab -e
+# 定时执行任务
+0 0 * * * sudo truncate -s 0 /etc/mosdns/mosdns.log && /etc/mosdns/mos_rule_update.sh
+
+==============================================================================
+
+# mosdns 配置完成。
+# cat /etc/mosdns/mosdns.log 检查运行日志。
 
