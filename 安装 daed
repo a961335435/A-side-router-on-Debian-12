@@ -53,45 +53,20 @@ routing {
 --------------------------------------------------------------
 ## 配置：路由
 
-l4proto(udp) && dport(5335) && dport(53) -> must_direct
+l4proto(udp) && dport(53) -> must_direct
 pname(mosdns) -> must_rules
-pname(NetworkManager, systemd-resolved,dnsmasq) -> must_direct
 pname(sing-box) -> must_direct
+
  dip(224.0.0.0/3) -> direct
  dip(geoip:private) -> direct
 
-# 所有UDP流量走直连，除了DNS和Quic
-l4proto(udp) && !dport(53, 443) -> direct
-
 # 根据实际需要配置网站等
-domain(ext:'geosite.dat:github') -> proxy
-
-#domain(ext:'geosite.dat:apple') -> direct
-domain(ext:'geosite.dat:apple-cn') -> direct
-domain(ext:'geosite.dat:icloud') -> direct
-domain(ext:'geosite.dat:icloudprivaterelay') -> direct
-domain(ext:'geosite.dat:microsoft') -> direct
+domain(ext:'geosite.dat:github') -> toWorld_proxy
 domain(ext:'geosite.dat:logitech') -> direct
-domain(ext:'geosite.dat:mozilla') -> direct
-domain(ext:'geosite.dat:speedtest') -> direct
 domain(ext:'geosite.dat:cn') -> direct
 domain(ext:'geosite.dat:china-list') -> direct
 domain(ext:'geosite.dat:geolocation-cn') -> direct
 domain(ext:'geosite.dat:private') -> direct
-domain(ext:'geosite.dat:cloudflare-cn') -> direct
-domain(ext:'geosite.dat:category-scholar-cn') -> direct
-domain(ext:'geosite.dat:category-media-cn') -> direct
-domain(ext:'geosite.dat:category-social-media-cn') -> direct
-domain(ext:'geosite.dat:category-dev-cn') -> direct
-domain(ext:'geosite.dat:category-bank-cn') -> direct
-domain(ext:'geosite.dat:category-game-accelerator-cn') -> direct
-domain(ext:'geosite.dat:alibaba') -> direct
-domain(ext:'geosite.dat:bilibili') -> direct
-domain(ext:'geosite.dat:bilibili2') -> direct
-domain(ext:'geosite.dat:tencent') -> direct
-domain(ext:'geosite.dat:zhihu') -> direct
-domain(suffix: 'windows.com') -> direct
-domain(suffix: 'bing.com') -> direct
 
 # 国内IP，直接转发
 domain(geosite:cn) -> direct
@@ -106,9 +81,6 @@ ipversion(6) -> block
 domain(geosite:category-ads) -> block
 domain(geosite:category-ads-all) -> block
 
-#谷歌云网址拒绝
-domain(suffix:bc.googleusercontent.com) -> block
-domain(suffix:googleusercontent) -> block
 
 # 代理域名地址非cn的网站
 domain(geosite:geolocation-!cn) -> toWorld_proxy
