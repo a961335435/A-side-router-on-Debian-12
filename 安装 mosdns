@@ -48,48 +48,7 @@ curl https://raw.githubusercontent.com/Hackl0us/GeoIP2-CN/release/CN-ip-cidr.txt
 curl https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt > /etc/mosdns/geosite_geolocation_noncn.txt
 curl https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt > /etc/mosdns/gfw.txt
 
-#  在/etc/mosdns/rule 下新建这些文件
-
-# 创建相关规则库，whitelist为国内dns解析
-# greylist.txt为远程dns解析
-# ddns会增加ttl标记，快速完成ddns解析ip地址更换
-
-mkdir /etc/mosdns/rule
-cd /etc/mosdns/rule
-
-touch whitelist.txt
-vim whitelist. txt
-  ##查询优化
-  domain:push-apple.com.akadns.net
-  domain:push.apple.com
-  domain:iphone-ld.apple.com
-  domain:lcdn-locator.apple.com
-  domain:lcdn-registration.apple.com
-  domain:cn-ssl.ls.apple.com
-  domain:time.apple.com
-  domain:store.ui.com.cn
-  domain:amd.com
-  domain:msftncsi.com
-  domain:msftconnecttest.com
-  domain:office.com
-  domain:office365.com
-
-touch blocklist.txt
-vim blocklist.txt
-  keyword:.localdomain
-
-
-touch greylist.txt
-touch ddnslist.txt
 touch hosts.txt
-touch redirect.txt 
-touch adlist.txt
-touch localptr.txt
-vim localptr.txt 
- # block all PTR requests
- domain:in-addr.arpa
- domain:ip6.arpa
-
 
 # 开启并运行mosdns
 systemctl enable mosdns --now 
@@ -129,7 +88,7 @@ plugins:
     type: hosts
     args:
       files:                       
-        - "/etc/mosdns/rule/hosts.txt"
+        - "/etc/mosdns/hosts.txt"
 
   - tag: "cache"
     type: cache
@@ -199,13 +158,13 @@ plugins:
     type: udp_server
     args:
       entry: main_sequence
-      listen: 127.0.0.1:53
+      listen: 127.0.0.1:5335
 
   - tag: tcp_server
     type: tcp_server
     args:
       entry: main_sequence
-      listen: 127.0.0.1:53
+      listen: 127.0.0.1:5335
 
 ==============================================================================
 
@@ -223,8 +182,6 @@ geosite_geolocation_noncn_url='https://raw.githubusercontent.com/Loyalsoldier/v2
 gfw_list_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt'
 geosite_cn_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/direct-list.txt'
 geoip_cn_file_url='https://raw.githubusercontent.com/Hackl0us/GeoIP2-CN/release/CN-ip-cidr.txt'
-apple_cn_url='https://github.com/Loyalsoldier/v2ray-rules-dat/blob/release/apple-cn.txt'
-block_list_url='https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/reject-list.txt'
 
 # 本地文件
 
@@ -232,8 +189,6 @@ geosite_cn_file="/etc/mosdns/geosite_cn.txt"
 geoip_cn_file="/etc/mosdns/geoip_cn.txt"
 geosite_geolocation_noncn_file="/etc/mosdns/geosite_geolocation_noncn.txt"
 gfw_file="/etc/mosdns/gfw.txt"
-apple_cn_file="/etc/mosdns/rule/apple-cn.txt"
-block_list_file="/etc/mosdns/rule/adlist.txt"
 
 # 下载替换函数
 download_and_replace() {
@@ -259,8 +214,6 @@ download_and_replace "$geosite_geolocation_noncn_url" "$geosite_geolocation_nonc
 download_and_replace "$gfw_list_url" "$gfw_file"
 download_and_replace "$geosite_cn_url" "$geosite_cn_file"
 download_and_replace "$geoip_cn_file_url" "$geoip_cn_file"
-download_and_replace "$apple_cn_url" "$apple_cn_file"
-download_and_replace "$block_list_url" "$block_list_file"
 
 ----------------------------------------------------------------
 

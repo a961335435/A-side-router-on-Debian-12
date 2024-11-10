@@ -61,7 +61,7 @@ pname(sing-box) -> must_direct
  dip(geoip:private) -> direct
 
 # 根据实际需要配置网站等
-domain(ext:'geosite.dat:github') -> toWorld_proxy
+domain(ext:'geosite.dat:github') -> proxy
 domain(ext:'geosite.dat:logitech') -> direct
 domain(ext:'geosite.dat:cn') -> direct
 domain(ext:'geosite.dat:china-list') -> direct
@@ -83,7 +83,7 @@ domain(geosite:category-ads-all) -> block
 
 
 # 代理域名地址非cn的网站
-domain(geosite:geolocation-!cn) -> toWorld_proxy
+domain(geosite:geolocation-!cn) -> proxy
 
 # 代理IP非CN的请求
 !dip(geoip:cn) -> proxy
@@ -154,6 +154,12 @@ download_and_replace "$geoip_url" "$geoip_file"
 download_and_replace "$geosite_url" "$geosite_file"
 
 --------------------------------------------------------------
+
+chmod +x /usr/share/daed/dae_rule_update.sh
+
+# 测试运行
+cd /usr/share/daed/
+./dae_rule_update.sh
 
 #  定时更新
 

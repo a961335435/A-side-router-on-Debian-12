@@ -3,10 +3,6 @@
 
 ==============================================================================
 
-# 禁用“systemd-resolved”服务。 
-sudo systemctl disable --now systemd-resolved
-sudo systemctl stop systemd-resolved
-
 # 安装
 apt update
 apt install dnsmasq -y

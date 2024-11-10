@@ -71,7 +71,8 @@ vim /etc/sing-box/config.json
         "clash_api": {
             "external_controller": "0.0.0.0:9090",
             "external_ui": "metacubexd",
-            "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
+            "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip", # Yacd-meta
+            # "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip", # METACUBE(XD)
             "external_ui_download_detour": "manual",
             "default_mode": "rule"
         },
@@ -138,6 +139,5 @@ journalctl -xfu sing-box
 # 本地浏览器： 10.10.11.7:9090 ，打开 METACUBE(XD),在”代理“手动选择要连接的结点。
 
 ========================================================================
-
 # 以上配置只适合我自己的网络环境！
 # sing-box 配置，请根据实际情况，自行配置。网上有大把案例参考。
