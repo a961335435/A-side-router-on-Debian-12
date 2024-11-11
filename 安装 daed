@@ -116,7 +116,7 @@ journalctl -xfu daed
 
 # 规则文件自动更新
 touch /usr/share/daed/dae_rule_update.sh
-touch /etc/mosdns/download_log.txt
+touch /usr/share/daed/download_log.txt
 vim /usr/share/daed/dae_rule_update.sh
 
 --------------------------------------------------------------
@@ -146,7 +146,7 @@ download_and_replace() {
     echo "$local_file 更新成功!"
   else
     # 下载失败
-   echo " $url to $local_file 下载失败！检查 /etc/mosdns/download_log.txt ！ " >> /etc/mosdns/download_log.txt
+   echo " $url to $local_file 下载失败！检查 /usr/share/daed/download_log.txt ！ " >> /usr/share/daed/download_log.txt
   fi
 }
 
