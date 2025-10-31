@@ -1,5 +1,5 @@
 # 在配置旁路由之前，要确认可以正常访问 github.com 等网站，以确保可以安装必要的依赖及工具等； 
-# 本人是 Esxi 虚拟机安装 Debian 12：单网卡，非图形安装，只安装了基础工具和 ssh server。
+# 本人是 pve 虚拟机安装 Debian ：非图形安装，只安装了基础工具和 ssh server。
 # 安装成功后，登录root用户。（家用环境）
 
 # 配置 /etc/ssh/sshd_config
@@ -53,13 +53,21 @@ ip a
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
-2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
-    link/ether 00:0c:11:d5:ce:33 brd ff:ff:ff:ff:ff:ff
-    altname enp2s1
-    inet 10.10.11.7/24 brd 10.10.11.255 scope global ens33
+2: ens18: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether bc:24:11:16:ee:38 brd ff:ff:ff:ff:ff:ff
+    altname enp6s18
+    altname enxbc241116ee38
+    inet 192.168.0.6/24 brd 192.168.0.255 scope global ens18
+       valid_lft forever preferred_lft forever
+4: dae0@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 7a:e6:1f:22:73:22 brd ff:ff:ff:ff:ff:ff link-netns daens
+    inet6 fe80::ecee:eeff:feee:eeee/128 scope link 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::78e6:1fff:fe22:7322/64 scope link proto kernel_ll 
        valid_lft forever preferred_lft forever
 
-# ens33 是我 Debian 12 的网卡。
+
+# ens18 是我 Debian 的网卡。
 
 ==================================================================
 
@@ -79,16 +87,14 @@ auto lo
 iface lo inet loopback
 
 # The primary network interface
-auto ens33
-allow-hotplug ens33
-iface ens33 inet static
-    address 10.10.11.7
-    netmask 255.255.255.0
-    network 10.10.11.0
-    broadcast 10.10.11.255
-    gateway 10.10.11.11
+auto ens18
+allow-hotplug ens18
+iface ens18 inet static
+	address 192.168.0.6
+	gateway 192.168.0.1
+	dns-nameservers 127.0.0.1
 
-# 10.10.11.11 是我家网络中主路由的地址。虚拟机安装的 ROS ，配置了 Dhcp 服务器。
+# 192.168.0.1 是我家网络中主路由的地址。pve 安装的 IKUAI ，配置了 Dhcp 服务器。
 
 # 保存后，重启服务器。
 
@@ -133,9 +139,28 @@ sudo iptables -P FORWARD ACCEPT
 
 vim /etc/sysctl.conf
 
-#在文件中修改或增加下面1行
+#在文件中修改或增加
 
+#内网转发
 net.ipv4.ip_forward=1
+#bbr
+net.ipv4.tcp_fastopen=3
+net.ipv4.tcp_fastopen_blackhole_timeout_sec=0
+net.ipv4.tcp_slow_start_after_idle=0
+#net.ipv4.tcp_collapse_max_bytes=6291456
+#net.ipv4.tcp_notsent_lowat=16384
+#net.ipv4.tcp_notsent_lowat=4294967295
+net.ipv4.tcp_syn_retries=3
+net.ipv4.tcp_moderate_rcvbuf=1
+net.ipv4.tcp_adv_win_scale=1
+net.ipv4.tcp_rmem=4096 26214400 104857600
+net.ipv4.tcp_wmem=4096 26214400 104857600
+net.core.rmem_default=26214400
+net.core.wmem_default=26214400
+net.core.rmem_max=104857600
+net.core.wmem_max=104857600
+net.core.default_qdisc=fq
+net.ipv4.tcp_congestion_control=bbr
 
 #立即生效
 sysctl -p
