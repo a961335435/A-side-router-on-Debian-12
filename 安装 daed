@@ -26,8 +26,8 @@ sudo systemctl enable daed
 
 # 透明代理端口保护：不选；
 # 日志等级：信息；
-# LAN 接口：ens33;
-# WAN 接口：ens33;
+# LAN 接口：ens18;
+# WAN 接口：ens18;
 # 自动配置内核参数：选；（即使你已经配置好了系统的网络环境，这个选项也需要选择，否则不通。）
 # 节点连通性检测：删除 ipv6 节点。
 # 连接选项：domain
@@ -38,7 +38,7 @@ sudo systemctl enable daed
 --------------------------------------------------------------
 ipversion_prefer: 4
 upstream {
-  mosdns: 'tcp+udp://127.0.0.1:5335' # 我本地 mosdns 服务 
+  mosdns: 'tcp+udp://127.0.0.1:55' # 我本地 mosdns 服务 
 }
 routing {
   request {
@@ -53,7 +53,8 @@ routing {
 --------------------------------------------------------------
 ## 配置：路由
 
-l4proto(udp) && dport(53) && dport(5335)-> must_direct
+l4proto(udp) && dport(53, 54, 55) -> must_direct
+
 pname(mosdns) -> must_rules
 pname(sing-box) -> must_direct
 pname(dnsmasq)-> must_direct
