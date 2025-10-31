@@ -62,16 +62,17 @@ systemctl status mosdns
 # yaml 格式要求非常严格，可以将编辑好的内容用下面这个网站检查格式。
 # https://products.groupdocs.app/editor/zh/source/config.yaml/b0149169-2bff-4cf8-8672-699f21054d2d
 # 网上配置文件很多，请自行参考编辑自己合适的yaml.
-# 我配置的 forward_local 和 forward_remote ，是网络内的两个 OPNsense 防火墙的 Unbound DNS 服务器。不具备参考意义。
+# 附上我的配置,为fork后修改,不泄露dns。
 # mosdns 配置文件信息
 
 ----------------------------------------------------------------
 
+#已解决dns泄露问题
 log:
   level: info
   file: "/etc/mosdns/mosdns.log"
 
-plugins: 
+plugins:
   - tag: "direct_domain"
     type: domain_set
     args:
@@ -87,7 +88,7 @@ plugins:
   - tag: "hosts"
     type: hosts
     args:
-      files:                       
+      files:
         - "/etc/mosdns/hosts.txt"
 
   - tag: "cache"
@@ -100,16 +101,38 @@ plugins:
   - tag: "remote_forward"
     type: forward
     args:
-      concurrent: 1
-      upstreams: 
-        - addr: tcp://10.10.11.55:853
+      concurrent: 4
+      upstreams:
+        - addr: "tls://dns.google"
+          dial_addr: "8.8.8.8"
+          enable_pipeline: true 
+        - addr: "tls://dns.google"
+          dial_addr: "8.8.4.4"
+          enable_pipeline: true
+        - addr: "tls://1dot1dot1dot1.cloudflare-dns.com"
+          dial_addr: "1.1.1.1"
+          enable_pipeline: true
+        - addr: "tls://1dot1dot1dot1.cloudflare-dns.com"
+          dial_addr: "1.0.0.1"
+          enable_pipeline: true
+
 
   - tag: "local_forward"
     type: forward
     args:
-      concurrent: 1
-      upstreams: 
-        - addr: tcp://10.10.11.44:853
+      concurrent: 10
+      upstreams:
+        - addr: udp://202.102.224.68:53
+        - addr: udp://202.102.227.68:53
+        - addr: tcp://202.102.224.68:53
+        - addr: tcp://202.102.227.68:53
+        - addr: udp://180.76.76.76:53  # 百度 DNS
+        - addr: udp://223.5.5.5:53  # 阿里 DNS
+        - addr: udp://223.6.6.6:53  # 阿里备用 DNS
+        - addr: udp://1.2.4.8:53  # 中国互联网络信息中心 DNS
+        - addr: udp://119.29.29.29:53  # 腾讯主 DNS
+        - addr: udp://119.28.28.28:53  # 腾讯备用 DNS
+
 
   - tag: "ttl_sequence"
     type: sequence
@@ -133,13 +156,8 @@ plugins:
         exec: goto local_sequence
       - exec: goto ttl_sequence
 
-  - tag: "final"
-    type: fallback
-    args:
-      primary: remote_sequence
-      secondary: local_sequence
-      threshold: 500
-      always_standby: true
+  # ------------------- 主要修改点在这里 ------------------- #
+  # 移除了原有的 "final" (fallback) 插件
 
   - tag: "main_sequence"
     type: sequence
@@ -149,22 +167,22 @@ plugins:
       - exec: $cache
       - matches: has_resp
         exec: accept
-      - matches: "qname $direct_domain"
-        exec: goto local_sequence
-      - exec: $final
-
+      - matches: "qname $direct_domain"  # 匹配到国内域名
+        exec: goto local_sequence        # 就跳转到国内DNS流程
+      - exec: $remote_sequence           # 其他所有域名，都执行远程DNS流程（不再有回退）
+  # ---------------------------------------------------- #
 
   - tag: udp_server
     type: udp_server
     args:
       entry: main_sequence
-      listen: 127.0.0.1:5335
+      listen: 127.0.0.1:55
 
   - tag: tcp_server
     type: tcp_server
     args:
       entry: main_sequence
-      listen: 127.0.0.1:5335
+      listen: 127.0.0.1:55
 
 ==============================================================================
 
