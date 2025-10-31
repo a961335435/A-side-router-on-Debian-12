@@ -71,8 +71,7 @@ vim /etc/sing-box/config.json
         "clash_api": {
             "external_controller": "0.0.0.0:9090",
             "external_ui": "metacubexd",
-            "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip", # Yacd-meta
-            # "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip", # METACUBE(XD)
+            "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
             "external_ui_download_detour": "manual",
             "default_mode": "rule"
         },
@@ -88,7 +87,6 @@ vim /etc/sing-box/config.json
             "listen_port": 7777,
             "tcp_fast_open": true,
             "tcp_multi_path": false,
-            "udp_fragment": true,
             "sniff": false,
             "sniff_override_destination": false,
             "sniff_timeout": "300ms",
@@ -96,26 +94,162 @@ vim /etc/sing-box/config.json
         }
     ],
     "outbounds": [
-    {
-			"type": "selector",
-			"tag": "manual",
-			"outbounds": [
-				"VMess_WS",
-				"singbox_hysteria2",
-				"VLESS_Reality_Vision",
-				"VLESS_Reality_gPRC",
-				"tuic",
-				"VMess_HTTPUpgrade"
-			]
-		},
-      .....
-    
-# outbounds 配置方法请自行学习，可供参考的样板网站之一：
-
-   https://github.com/chika0801/sing-box-examples
-   
-# 路由配置的 manual ,是为出站配置了 selector . 
-
+        {
+            "type": "selector",
+            "tag": "manual",
+            "outbounds": [
+                "阿里云-SG",
+                "CCS旱柚",
+                "vl-reality-Bero",
+                "hy2-bero",
+                "vl-reality-CCS",
+                "hy2-CCS",
+                "vl-reality-dedirock",
+                "hy2-dedirock"
+            ]
+        },
+        {
+            "type": "vless",
+            "tag": "阿里云-SG",
+            "server": "ip",
+            "server_port": 12581,
+            "uuid": "uuid",
+            "flow": "xtls-rprx-vision",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.nazhumi.com",
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "QjklEqZ5S5xxOgCh1pKW4bKbF6D4vbLW9N4ujzD6TQ0",
+                    "short_id": "3cb970d8491ddcbd"
+                }
+            }
+        },
+        {
+            "type": "hysteria2",
+            "tag": "CCS旱柚",
+            "server": "ip",
+            "server_port": 35366,
+            "password": "uuid",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.bing.com",
+                "insecure": true
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "vl-reality-Bero",
+            "server": "ip",
+            "server_port": 443,
+            "uuid": "uuid",
+            "flow": "xtls-rprx-vision",
+            "tls": {
+                "enabled": true,
+                "server_name": "apple.com",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "b2e5pS7194r_7khwro-4EpdGqgwbBAKECXQyXZv_o0I",
+                    "short_id": "09905085"
+                }
+            }
+        },
+        {
+            "type": "hysteria2",
+            "tag": "hy2-bero",
+            "server": "ip",
+            "server_port": 23456,
+            "password": "uuid",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.bing.com",
+                "insecure": true,
+                "alpn": [
+                    "h3"
+                ]
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "vl-reality-CCS",
+            "server": "ip",
+            "server_port": 443,
+            "uuid": "uuid",
+            "flow": "xtls-rprx-vision",
+            "tls": {
+                "enabled": true,
+                "server_name": "apple.com",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "safari"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "wnppuzfiZyADB1U3Z9xBE18SRQw0kAUyeNwMHZb-ED4",
+                    "short_id": "f78f2e7d"
+                }
+            }
+        },
+        {
+            "type": "hysteria2",
+            "tag": "hy2-CCS",
+            "server": "ip",
+            "server_port": 38888,
+            "password": "uuid",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.bing.com",
+                "insecure": true,
+                "alpn": [
+                    "h3"
+                ]
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "vl-reality-dedirock",
+            "server": "ip",
+            "server_port": 443,
+            "uuid": "uuid",
+            "flow": "xtls-rprx-vision",
+            "tls": {
+                "enabled": true,
+                "server_name": "apple.com",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "safari"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "wuoC3iaSiV3R0Qa-pqPV46fT6bdGJqlvltguDDmsShQ",
+                    "short_id": "ce21b6b9"
+                }
+            }
+        },
+        {
+            "type": "hysteria2",
+            "tag": "hy2-dedirock",
+            "server": "ip",
+            "server_port": 34567,
+            "password": "uuid",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.bing.com",
+                "insecure": true,
+                "alpn": [
+                    "h3"
+                ]
+            }
+        }
     ],
     "route": {
         "final": "manual",
@@ -136,7 +270,7 @@ journalctl -xfu sing-box
 
 ========================================================================
 
-# 本地浏览器： 10.10.11.7:9090 ，打开 METACUBE(XD),在”代理“手动选择要连接的结点。
+# 本地浏览器： 192.168.0.6:9090 ，打开 METACUBE(XD),在”代理“手动选择要连接的结点。
 
 ========================================================================
 # 以上配置只适合我自己的网络环境！
