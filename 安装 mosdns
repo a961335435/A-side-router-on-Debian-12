@@ -62,7 +62,7 @@ systemctl status mosdns
 # yaml 格式要求非常严格，可以将编辑好的内容用下面这个网站检查格式。
 # https://products.groupdocs.app/editor/zh/source/config.yaml/b0149169-2bff-4cf8-8672-699f21054d2d
 # 网上配置文件很多，请自行参考编辑自己合适的yaml.
-# 附上我的配置,为fork后修改,不泄露dns。
+# 附上我的配置,为fork后修改,修复了泄露dns的问题。
 # mosdns 配置文件信息
 
 ----------------------------------------------------------------
