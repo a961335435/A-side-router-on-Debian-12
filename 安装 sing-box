@@ -87,6 +87,7 @@ vim /etc/sing-box/config.json
             "listen_port": 7777,
             "tcp_fast_open": true,
             "tcp_multi_path": false,
+            "udp_fragment": true,
             "sniff": false,
             "sniff_override_destination": false,
             "sniff_timeout": "300ms",
