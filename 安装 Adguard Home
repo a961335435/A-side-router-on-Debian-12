@@ -1,0 +1,415 @@
+#设置Adguard Home 监听端口为54
+
+#1.下载Adguard Home
+wget https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz -O AdGuardHome.tar.gz
+#2.解压下载的文件
+tar xvf AdGuardHome.tar.gz
+#3.创建目标目录并移动文件
+sudo mkdir -p /etc/AdguardHome
+sudo mv AdGuardHome/AdGuardHome /etc/AdguardHome/
+#4.安装为系统服务
+cd /etc/AdguardHome
+sudo ./AdGuardHome --service install
+
+#打开/etc/AdGuardHome/AdGuardHome.yaml
+#从filters:开始复制到结束替换到自己的文件中
+#启动：sudo systemctl start AdGuardHome
+#停止：sudo systemctl stop AdGuardHome
+#查看状态：sudo systemctl status AdGuardHome
+#设置开机自启：sudo systemctl enable AdGuardHome
+
+http:
+  pprof:
+    port: 6060
+    enabled: false
+  address: 0.0.0.0:2024
+  session_ttl: 720h
+users:
+  - name: admin
+    password: $2a$10$MamzVeeRQwfAauc3TQGPxe9ZliUHc6QCDoU1dBJz2dtH7gMF7MU2C
+auth_attempts: 5
+block_auth_min: 15
+http_proxy: ""
+language: ""
+theme: auto
+dns:
+  bind_hosts:
+    - 0.0.0.0
+  port: 54
+  anonymize_client_ip: false
+  ratelimit: 20
+  ratelimit_subnet_len_ipv4: 24
+  ratelimit_subnet_len_ipv6: 56
+  ratelimit_whitelist: []
+  refuse_any: true
+  upstream_dns:
+    - 127.0.0.1:55
+  upstream_dns_file: ""
+  bootstrap_dns:
+    - 9.9.9.10
+    - 149.112.112.10
+    - 2620:fe::10
+    - 2620:fe::fe:10
+  fallback_dns: []
+  upstream_mode: parallel
+  fastest_timeout: 1s
+  allowed_clients: []
+  disallowed_clients: []
+  blocked_hosts:
+    - version.bind
+    - id.server
+    - hostname.bind
+  trusted_proxies:
+    - 127.0.0.0/8
+    - ::1/128
+  cache_enabled: false
+  cache_size: 33554432
+  cache_ttl_min: 0
+  cache_ttl_max: 0
+  cache_optimistic: false
+  bogus_nxdomain: []
+  aaaa_disabled: false
+  enable_dnssec: false
+  edns_client_subnet:
+    custom_ip: ""
+    enabled: false
+    use_custom: false
+  max_goroutines: 300
+  handle_ddr: true
+  ipset: []
+  ipset_file: ""
+  bootstrap_prefer_ipv6: false
+  upstream_timeout: 10s
+  private_networks: []
+  use_private_ptr_resolvers: false
+  local_ptr_upstreams: []
+  use_dns64: false
+  dns64_prefixes: []
+  serve_http3: false
+  use_http3_upstreams: false
+  serve_plain_dns: true
+  hostsfile_enabled: true
+  pending_requests:
+    enabled: true
+tls:
+  enabled: false
+  server_name: ""
+  force_https: false
+  port_https: 443
+  port_dns_over_tls: 853
+  port_dns_over_quic: 853
+  port_dnscrypt: 0
+  dnscrypt_config_file: ""
+  allow_unencrypted_doh: false
+  certificate_chain: ""
+  private_key: ""
+  certificate_path: ""
+  private_key_path: ""
+  strict_sni_check: false
+querylog:
+  dir_path: ""
+  ignored: []
+  interval: 2160h
+  size_memory: 1000
+  enabled: true
+  file_enabled: true
+statistics:
+  dir_path: ""
+  ignored: []
+  interval: 2160h
+  enabled: true
+filters:
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+    name: AdGuard DNS filter
+    id: 1
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt
+    name: AdAway Default Blocklist
+    id: 2
+  - enabled: true
+    url: https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-easylist.txt
+    name: anti-ad-easylist
+    id: 1754636158
+  - enabled: true
+    url: https://raw.githubusercontent.com/BlueSkyXN/AdGuardHomeRules/master/all.txt
+    name: master
+    id: 1754636159
+  - enabled: true
+    url: https://cdn.jsdelivr.net/gh/privacy-protection-tools/anti-AD@master/anti-ad-easylist.txt
+    name: anti-ad-easylist
+    id: 1754636160
+  - enabled: true
+    url: https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblockdns.txt
+    name: adblockdns
+    id: 1754636161
+  - enabled: true
+    url: https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblockfilters.txt
+    name: adblockfilters
+    id: 1754636162
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_49.txt
+    name: filter_49
+    id: 1754636163
+  - enabled: true
+    url: https://filters.adtidy.org/android/filters/15_optimized.txt
+    name: 15_optimized
+    id: 1754636164
+  - enabled: true
+    url: https://filters.adtidy.org/android/filters/11_optimized.txt
+    name: Adguard移动广告过滤器
+    id: 1754636165
+  - enabled: true
+    url: https://anti-ad.net/easylist.txt
+    name: easylist
+    id: 1754636166
+  - enabled: true
+    url: https://ublockorigin.github.io/uAssetsCDN/filters/lan-block.txt
+    name: lan-block
+    id: 1754636167
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_29.txt
+    name: filter_29
+    id: 1754636168
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt
+    name: filter_53
+    id: 1754636169
+  - enabled: true
+    url: https://filters.adtidy.org/android/filters/228_optimized.txt
+    name: 228_optimized
+    id: 1754636170
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/MobileFilter/sections/adservers.txt
+    name: adservers
+    id: 1754636171
+  - enabled: true
+    url: https://easylist-downloads.adblockplus.org/easylistchina.txt
+    name: easylistchina
+    id: 1754636173
+  - enabled: true
+    url: https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt
+    name: filter
+    id: 1754636174
+  - enabled: true
+    url: https://ghfast.top/raw.githubusercontent.com/8680/GOODBYEADS/master/data/rules/adblock.txt
+    name: adblock
+    id: 1755009335
+  - enabled: true
+    url: https://ghfast.top/raw.githubusercontent.com/8680/GOODBYEADS/master/data/rules/dns.txt
+    name: dns
+    id: 1755009336
+  - enabled: true
+    url: https://ghfast.top/raw.githubusercontent.com/8680/GOODBYEADS/master/data/rules/ad-domain.txt
+    name: ad-domain
+    id: 1755009337
+  - enabled: true
+    url: https://perflyst.github.io/PiHoleBlocklist/SmartTV-AGH.txt
+    name: SmartTV-AGH
+    id: 1755009338
+  - enabled: true
+    url: https://raw.githubusercontent.com/xinggsf/Adblock-Plus-Rule/master/mv.txt
+    name: 乘风视频过滤规则
+    id: 1755009339
+  - enabled: true
+    url: https://raw.githubusercontent.com/Noyllopa/NoAppDownload/master/NoAppDownload.txt
+    name: 去APP下载提示规则
+    id: 1755009340
+  - enabled: true
+    url: https://small.oisd.nl/
+    name: oisd规则
+    id: 1755009341
+  - enabled: true
+    url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/AWAvenue-Ads-Rule.txt
+    name: AWAvenue 秋风广告规则
+    id: 1755009342
+  - enabled: true
+    url: https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt
+    name: CJX 的烦恼清单
+    id: 1755009343
+whitelist_filters:
+  - enabled: true
+    url: https://ghfast.top/raw.githubusercontent.com/8680/GOODBYEADS/master/data/rules/allow.txt
+    name: allow
+    id: 1755009344
+user_rules:
+  - '# 白名单(自定义过滤规则)：'
+  - '@@||dataflow.biliapi.com^$important'
+  - '@@||lxcdn.dl.files.xiaomi.net^$important'
+  - '||u3.ucweb.com^'
+  - '@@||ip.taobao.com^$important'
+  - '@@||adashbc.ut.taobao.com^$important'
+  - '@@||s.click.tmall.com^$important'
+  - '@@||s.click.taobao.com^$important'
+  - '@@||taobao.com^'
+  - '@@||clientlog3.music.163.com^$important'
+  - '@@||app-monitor.ele.me^$important'
+  - '@@||mon.snssdk.com^$important'
+  - '@@||datacollector-drcn.dt.hicloud.com^$important'
+  - '@@||ele.me^'
+  - '@@||elemcdn.com^'
+  - '@@||alipayobjects.com^'
+  - '@@||jianshu.com^'
+  - '#||ctobsnssdk.com^'
+  - '#||pangolin.snssdk.com^'
+  - '#||pangolin-sdk-toutiao.com^'
+  - '#||pangolin-sdk-toutiao-b.com^'
+  - '#||pglstatp-toutiao.com^'
+  - '#||dm.toutiao.com^'
+  - '#||ulogs.umeng.com^'
+  - '#||aaid.umeng.com^'
+  - '#||tnc*.zijieapi.com^'
+  - '#||mssdk-bu.bytedance.com^'
+  - '||api2.coolapk.com/v6/feed/detail$replace=/"include_goods_ids":\[.*?]\,"include_goods":\[.*?]\,/ /'
+  - '||api2.coolapk.com/v6/feed/detail$replace=/\,"detailSponsorCard":{.*}/}}/'
+  - '# csdn广告'
+  - '||lupic.cdn.bcebos.com^'
+  - '# 简书广告'
+  - '||pp.chuzushijian.cn^'
+  - '||cdn-file-ssl-wan.ludashi.com^'
+  - '||cdn-file-ssl-wan.ludashi.com/wan/newswf/dlgglm^$important'
+  - '# 解除张大妈'
+  - '@@||smzdm.com^'
+  - '@@||zdmimg.com^'
+  - '# 贴吧'
+  - '## tieba-ares.cdn.bcebos.com/mis/2023-5/1683789351139/ac0b4431fb1b.gif'
+  - '||tieba-ares.cdn.bcebos.com/mis^$important'
+  - '||tieba-ares.cdn.bcebos.com^$important'
+  - '# 解除夸克'
+  - '@@||myquark.cn^'
+  - '@@||quark.cn^'
+  - '# 解除阿里'
+  - '@@||aliyuncs.com^'
+  - '#'
+  - '@@||netease.com^'
+  - '# 酷安_测试faild'
+  - '#||tr.byteurl.cn^$important'
+  - '#||pull-flv-f29.douyincdn.com^$important'
+  - '#||pull-hls-vr-l11.douyincdn.com^$important'
+  - '#||frontier100-toutiao.toutiaoapi.com^$important'
+  - '#||p3-shortvideo-sign.toutiaoimg.com^$important'
+  - '#||niu-agjsnj.snssdk.com^$important'
+  - '#||mssdk3-normal-lf.zijieapi.com^$important'
+  - '# 酷安+番茄'
+  - '||pangolin-sdk-toutiao.com^'
+  - '||zijieapi.com^$app=com.dragon.read'
+  - '||frontier-toutiao.snssdk.com^$app=com.dragon.read'
+  - '||pangolin-sdk-toutiao-b.com^'
+  - '||ads5-normal-lf.zijieapi.com^$app=com.dragon.read'
+  - '||pglstatp-toutiao.com^'
+  - '# 解除CSDN'
+  - '#@@||blog.csdn.net'
+  - '# 解除哔哩哔哩'
+  - '@@||bilibili.com^'
+  - '# 同花顺看点'
+  - '@@||10jqka.com.cn^$important'
+  - '#@@||mo.baidu.com^$important'
+  - '# 京东'
+  - '@@||jd.com^$important'
+  - '@@||360buyimg.com^$important'
+  - '# 王者'
+  - '@@||ap6.ssl.msdk.qq.com^$important'
+  - '@@||szlong.weixin.qq.com^$important'
+  - '# 快手?'
+  - '@@||kuaishou.httpdns.pro^$important'
+  - '@@||mime.baidu.com^$important'
+  - '#||astrill4u.com^$client=''103.98.17.11'''
+  - '#||astrill4u.com^$important'
+  - '@@||dc.sigmob.cn^$important'
+  - '# Copilot'
+  - '@@||githubusercontent.com^$important'
+  - '@@||github.com^$important'
+  - '# 阻止扫描'
+  - '||astrill4u.com^$important'
+  - '#@@||qq.com^$important'
+  - '@@||3g.qq.com^$important'
+  - '@@||public.gdtimg.com^$important'
+  - '# shoppy'
+  - '@@||shoppy.gg^$important'
+  - '# QQ'
+  - '@@||qpic.cn^$important'
+  - '#@@||qq.com^$important'
+  - '@@||t9.baidu.com^$important'
+  - '@@||b.bdstatic.com^$important'
+  - '@@||t7.baidu.com^$important'
+  - '@@||sofire.baidu.com^$important'
+  - '@@||t8.baidu.com^$important'
+  - '@@||smartop-sdkapi.jiguang.cn^$important'
+  - '#讯飞翻译'
+  - '@@||pinyin.voicecloud.cn^$important'
+  - '@@||imeclient.openspeech.cn^'
+  - ""
+dhcp:
+  enabled: false
+  interface_name: ""
+  local_domain_name: lan
+  dhcpv4:
+    gateway_ip: ""
+    subnet_mask: ""
+    range_start: ""
+    range_end: ""
+    lease_duration: 86400
+    icmp_timeout_msec: 1000
+    options: []
+  dhcpv6:
+    range_start: ""
+    lease_duration: 86400
+    ra_slaac_only: false
+    ra_allow_slaac: false
+filtering:
+  blocking_ipv4: ""
+  blocking_ipv6: ""
+  blocked_services:
+    schedule:
+      time_zone: Local
+    ids: []
+  protection_disabled_until: null
+  safe_search:
+    enabled: false
+    bing: true
+    duckduckgo: true
+    ecosia: true
+    google: true
+    pixabay: true
+    yandex: true
+    youtube: true
+  blocking_mode: default
+  parental_block_host: family-block.dns.adguard.com
+  safebrowsing_block_host: standard-block.dns.adguard.com
+  rewrites: []
+  safe_fs_patterns:
+    - /home/15738662855/DNS/AdGuardHome/userfilters/*
+  safebrowsing_cache_size: 1048576
+  safesearch_cache_size: 1048576
+  parental_cache_size: 1048576
+  cache_time: 30
+  filters_update_interval: 24
+  blocked_response_ttl: 10
+  filtering_enabled: true
+  rewrites_enabled: true
+  parental_enabled: false
+  safebrowsing_enabled: false
+  protection_enabled: true
+clients:
+  runtime_sources:
+    whois: true
+    arp: true
+    rdns: false
+    dhcp: true
+    hosts: true
+  persistent: []
+log:
+  enabled: true
+  file: ""
+  max_backups: 0
+  max_size: 100
+  max_age: 3
+  compress: false
+  local_time: false
+  verbose: false
+os:
+  group: ""
+  user: ""
+  rlimit_nofile: 0
+schema_version: 31
+
